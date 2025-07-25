@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Uploader</title>
+  <style>
+    body { font-family: Arial; margin: 40px; }
+    .preview { margin-top: 20px; }
+    video, img { max-width: 300px; display: block; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+  <h2>Upload Image or Video</h2>
+  <form id="uploadForm">
+    <input type="file" name="file" id="fileInput" accept="image/*,video/*" required />
+    <button type="submit">Upload</button>
+  </form>
+
+  <div class="preview" id="preview"></div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const preview = document.getElementById('preview');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput.files[0];
+
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('http://localhost:5000/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          preview.innerHTML = '';
+          if (file.type.startsWith('image/')) {
+            preview.innerHTML = `<img src="${data.fileUrl}" alt="Uploaded Image" />`;
+          } else if (file.type.startsWith('video/')) {
+            preview.innerHTML = `<video controls><source src="${data.fileUrl}" type="${file.type}"></video>`;
+          }
+        } else {
+          alert(data.error || 'Upload failed');
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        alert('Upload error');
+      }
+    });
+  </script>
+
+</body>
+</html>
